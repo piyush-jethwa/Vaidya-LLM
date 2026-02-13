@@ -38,7 +38,12 @@ except Exception:
 import pdfplumber
 import chromadb
 from chromadb.config import Settings
-import ollama
+
+# Ollama is optional (not available on Streamlit Cloud by default)
+try:
+    import ollama  # type: ignore
+except Exception:
+    ollama = None  # type: ignore
 
 # Load .env if present (local development)
 try:
@@ -429,6 +434,8 @@ def _retrieve_context(collection, question: str, top_k: int = TOP_K) -> Tuple[st
 
 
 def _ask_ollama_book_only(question: str, context: str) -> str:
+    if ollama is None:
+        return ""
     context = context[:800] if len(context) > 800 else context
 
     system = (
@@ -639,6 +646,9 @@ def _generate_prescription_book_only(diagnosis: str, context: str) -> str:
             return (resp.choices[0].message.content or "").strip()
         except Exception:
             pass
+
+    if ollama is None:
+        return "Consult healthcare professional for specific medication."
 
     resp = ollama.chat(
         model=OLLAMA_MODEL,
