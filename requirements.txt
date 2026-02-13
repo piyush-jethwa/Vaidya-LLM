@@ -1,9 +1,17 @@
-streamlit==1.28.0
+streamlit>=1.41.0
 python-dotenv==1.0.0
 requests==2.31.0
 pandas>=1.3.0
 numpy>=1.21.0
-Pillow>=11.1.0
+
+# Let Streamlit resolve a compatible Pillow version (avoids source builds on py3.13)
+# Pillow
+
+# Streamlit 1.28 pinned rich<14; newer Streamlit supports rich 14+, but keep safe bound
+rich<15
+
+# Optional: only used for local Ollama mode; safe on Cloud if installed but daemon not present
+ollama>=0.5.0
 
 groq>=0.3.0
 
