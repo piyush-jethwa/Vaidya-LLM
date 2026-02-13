@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / local config
+.env
+.env.*
+*.key
+*.pem
+
+# Logs
+*.log
+
+# App data / generated files
+_trash/
+voice_cache/
+chroma_db/
+Books/
+
+# Audio/images generated during runs
+*.wav
+*.mp3
+
+# Streamlit
+.streamlit/
+
+# Misc
+*.sqlite3
