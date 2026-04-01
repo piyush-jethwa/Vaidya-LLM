@@ -1,6 +1,7 @@
 streamlit==1.41.1
 python-dotenv==1.0.0
 requests==2.31.0
+
 pandas==1.5.3
 numpy==1.24.4
 
@@ -9,16 +10,11 @@ rich<14
 groq>=0.3.0
 gtts==2.3.2
 
-# ⚠️ REMOVE opencv (causes many cloud build failures)
-# opencv-python==4.9.0.80
-
 pdfplumber==0.10.3
 
-# ✅ RAG stack (stable combo)
 chromadb==0.4.24
 sentence-transformers==2.2.2
 
-# ✅ CRITICAL FIXES
 protobuf==3.20.3
 grpcio==1.60.0
 opentelemetry-api==1.22.0
