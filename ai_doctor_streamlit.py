@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple
 # Workaround for triton compatibility issue on Windows
 os.environ.setdefault('TRITON_INTERPRET', '1')
 os.environ.setdefault('TRITON_DISABLE_LINE_INFO', '1')
+os.environ["OTEL_SDK_DISABLED"] = "true"
 
 st.set_page_config(page_title="Vaidya Ai - Healthcare assistant", layout="wide")
 
