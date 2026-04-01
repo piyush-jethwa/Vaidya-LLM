@@ -4,32 +4,20 @@ requests==2.31.0
 pandas>=1.3.0
 numpy>=1.21.0
 
-# Let Streamlit resolve a compatible Pillow version (avoids source builds on py3.13)
-# Pillow
-
-# Streamlit 1.28 pinned rich<14; newer Streamlit supports rich 14+, but keep safe bound
 rich<15
 
-# Optional: only used for local Ollama mode; safe on Cloud if installed but daemon not present
 ollama>=0.5.0
-
 groq>=0.3.0
 
 gtts==2.3.2
 opencv-python==4.9.0.80
 
-# RAG / PDF / Vector DB
 pdfplumber>=0.10.3
-chromadb>=0.5.0
+chromadb==0.4.24
 sentence-transformers>=2.6.1
 
-# NOTE: streamlit cloud + webrtc/audio recording often requires extra system deps.
-# Keep these optional; the main app supports uploading audio files without them.
-# streamlit-webrtc==0.62.1
-# av>=10.0.0
-# streamlit-mic-recorder
-
+# 🔴 CRITICAL FIXES
 protobuf==3.20.3
-chromadb==0.4.24
 opentelemetry-api==1.22.0
 opentelemetry-sdk==1.22.0
+grpcio==1.60.0
