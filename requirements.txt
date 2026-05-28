@@ -6,7 +6,14 @@ rich<14
 
 # Embeddings / RAG
 chromadb==0.4.24
-sentence-transformers==2.2.2
+# chromadb 0.4.24 is incompatible with newer NumPy versions due to deprecated np.uint/np.int.
+# Pin NumPy to a compatible version for Streamlit Cloud.
+numpy==1.24.4
+sentence-transformers==2.3.1
+
+
+
+
 pdfplumber==0.10.3
 
 # Speech (optional)
@@ -15,4 +22,10 @@ gtts==2.3.2
 # Vision/image utilities (optional - only used if image features hit code paths)
 # NOTE: if Streamlit Cloud build fails, remove opencv-python and rely on fallback encoding.
 opencv-python-headless==4.10.0.84
+
+# Note:
+# - On Streamlit Cloud (Linux), torch/sentence-transformers wheels differ.
+# - This file is intended to be a simpler, Cloud-safe requirements set.
+# - If Cloud still fails, remove opencv-python-headless and sentence-transformers first.
+
 
