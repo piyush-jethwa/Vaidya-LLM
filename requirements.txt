@@ -2,20 +2,17 @@ streamlit==1.41.1
 python-dotenv==1.0.0
 requests==2.31.0
 
-pandas==1.5.3
-numpy==1.24.4
-
 rich<14
 
-groq>=0.3.0
-gtts==2.3.2
-
-pdfplumber==0.10.3
-
+# Embeddings / RAG
 chromadb==0.4.24
 sentence-transformers==2.2.2
+pdfplumber==0.10.3
 
-protobuf==3.20.3
-grpcio==1.60.0
-opentelemetry-api==1.22.0
-opentelemetry-sdk==1.22.0
+# Speech (optional)
+gtts==2.3.2
+
+# Vision/image utilities (optional - only used if image features hit code paths)
+# NOTE: if Streamlit Cloud build fails, remove opencv-python and rely on fallback encoding.
+opencv-python-headless==4.10.0.84
+
