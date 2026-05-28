@@ -9,22 +9,7 @@ import hashlib
 import shutil
 import tempfile
 from functools import lru_cache
-
-# --- Make Groq optional so the project can run fully offline ---
-try:
-    from groq import Groq, GroqError  # type: ignore
-except Exception:  # ModuleNotFoundError or any import-time issue
-    Groq = None  # type: ignore
-
-    class GroqError(Exception):
-        pass
-
-    def _groq_missing_error() -> str:
-        return (
-            "Groq is not installed or not available. This project can run offline for book-only RAG. "
-            "If you want voice transcription / online Groq features, install it with: pip install groq "
-            "and set GROQ_API_KEY."
-        )
+from groq import Groq, GroqError
 
 # Try to get API key from environment variables first
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
@@ -39,8 +24,6 @@ def get_api_key():
 
 def test_api_key(api_key):
     """Test if the provided API key is valid by making a minimal request"""
-    if Groq is None:
-        return False
     try:
         client = Groq(api_key=api_key)
         # Make a minimal request to list available models or similar
@@ -120,16 +103,6 @@ def generate_prescription(diagnosis, language="English"):
     if not diagnosis or not isinstance(diagnosis, str):
         raise ValueError("Diagnosis must be a non-empty string")
 
-    if Groq is None:
-        # Offline mode: do not attempt online prescription generation
-        return (
-            "PRESCRIPTION\n"
-            f"Date: {datetime.now().strftime('%d/%m/%Y')}\n"
-            "Doctor: AI Doctor\n\n"
-            "(Offline mode) Groq is not available to generate medication suggestions. "
-            "Please consult a licensed clinician."
-        )
-
     date = datetime.now().strftime("%d/%m/%Y")
     
     # Use AI to generate appropriate medications based on the diagnosis
@@ -175,7 +148,7 @@ def generate_prescription(diagnosis, language="English"):
                 {"role": "user", "content": prompt}
             ],
             model="llama-3.1-8b-instant",
-            max_tokens=200,  # Slightly increased for prescriptions
+            max_tokens=150,
             temperature=0.3
         )
         
@@ -267,16 +240,13 @@ Doctor: AI Doctor
         medications="\n".join(f"- {med}" for med in medications),
     )
 
-# Removed lru_cache - encoded_image parameter makes cache ineffective
+@lru_cache(maxsize=100)
 def analyze_image_with_query(query, encoded_image, language="English", model="llama3.1-8b-instant"):
     """Analyze image with text query using GROQ's vision model with caching"""
     import logging
     if not query or not encoded_image:
         logging.error("Missing required parameters for analyze_image_with_query")
         return "Error: Missing required parameters for image analysis."
-        
-    if Groq is None:
-        return _groq_missing_error()
         
     client = Groq(api_key=get_api_key())
     
@@ -408,7 +378,7 @@ def analyze_image_with_query(query, encoded_image, language="English", model="ll
         response = client.chat.completions.create(
             messages=messages,
             model=model,
-            max_tokens=400  # Reduced for faster responses
+            max_tokens=800
         )
         content = response.choices[0].message.content
         if not isinstance(content, str):
@@ -432,23 +402,25 @@ def analyze_image_with_query(query, encoded_image, language="English", model="ll
             return analyze_text_query(query, language)
         return f"Vision analysis failed: {str(e)}"
 
-# Validate GROQ API key (do not exit; allow offline operation)
+# Validate GROQ API key
 if not GROQ_API_KEY:
     error_msg = """
-    GROQ_API_KEY not found. (This is OK for offline book-only RAG mode.)
-
-    Online Groq features (voice transcription / Groq-based diagnosis) will be unavailable unless you set:
-    - Environment variable: GROQ_API_KEY
-    - or Streamlit secrets: st.secrets["GROQ_API_KEY"]
-    - or .env file
-
+    ERROR: GROQ_API_KEY not found. Please make sure it's set in:
+    1. Streamlit secrets (for deployment) - st.secrets["GROQ_API_KEY"]
+    2. Environment variables (for local development) - GROQ_API_KEY
+    3. .env file (for local development) - GROQ_API_KEY=your_key_here
+    
     You can get an API key from: https://console.groq.com/
     """
     print(error_msg)
+    # Don't exit in Streamlit environment, just show error
+    if 'streamlit' not in sys.modules:
+        sys.exit(1)
 else:
     print(f"[INFO] API Key Status: Found (Length: {len(GROQ_API_KEY)} characters)")
     if GROQ_API_KEY.startswith("gsk_"):
         print("[INFO] API Key format looks correct (starts with 'gsk_')")
+        # Test the API key
         if test_api_key(GROQ_API_KEY):
             print("[INFO] API Key is valid and working!")
         else:
@@ -472,9 +444,6 @@ def analyze_text_query(query, language="English", model="llama-3.1-8b-instant", 
     if not query or not isinstance(query, str):
         logging.error("Invalid query parameter for analyze_text_query")
         return "Error: Invalid query parameter."
-        
-    if Groq is None:
-        return _groq_missing_error()
         
     client = Groq(api_key=get_api_key())
     
@@ -531,7 +500,7 @@ def analyze_text_query(query, language="English", model="llama-3.1-8b-instant", 
             response = client.chat.completions.create(
                 messages=messages,
                 model=model,
-                max_tokens=400,  # Reduced for faster responses
+                max_tokens=800,
                 temperature=0.7  # Add some randomness to responses
             )
             
@@ -547,13 +516,20 @@ def analyze_text_query(query, language="English", model="llama-3.1-8b-instant", 
                 logging.error("Empty content string from analyze_text_query")
                 return "Error: Empty content from text analysis."
             
-            # Return content directly for faster processing
-            return content
+            # Add some post-processing to ensure varied responses
+            diagnosis_variations = [
+                content,
+                f"MEDICAL ANALYSIS:\n{content}",
+                f"DIAGNOSTIC ASSESSMENT:\n{content}",
+                f"CLINICAL EVALUATION:\n{content}"
+            ]
+            
+            return random.choice(diagnosis_variations)
             
         except GroqError as e:
             last_error = e
             if attempt < max_retries - 1:
-                time.sleep(0.5 * (attempt + 1))  # Reduced backoff for faster retries
+                time.sleep(1 * (attempt + 1))  # Exponential backoff
                 continue
             logging.error(f"API request failed after {max_retries} attempts: {str(e)}")
             return f"Text analysis failed: {str(e)}"
