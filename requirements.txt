@@ -1,7 +1,7 @@
 streamlit==1.41.1
 python-dotenv==1.0.0
 requests==2.31.0
-pandas==1.5.3
+pandas==2.2.3
 numpy<2
 rich<14
 groq>=0.3.0
